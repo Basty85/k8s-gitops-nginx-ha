@@ -1,4 +1,4 @@
-# Sebastian Meyer's Kubernetes Infrastructure
+# Learning Project Kubernetes HA Infrastructure
 
 🚀 **High-Availability Kubernetes Cluster Infrastructure**
 
