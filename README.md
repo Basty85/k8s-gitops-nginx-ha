@@ -57,8 +57,8 @@ microk8s helm3 upgrade --install nginx-website-dev \
 
 ```bash
 # Clone repository
-git clone <repo-url>
-cd k8s-deployment
+git clone https://github.com/Basty85/k8s-gitops-nginx-ha.git
+cd k8s-gitops-nginx-ha
 
 # Deploy application
 microk8s helm3 upgrade --install nginx-website \
