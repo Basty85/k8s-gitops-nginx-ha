@@ -68,3 +68,47 @@ website:
     - icon: "⚡"
       title: "Performance"
       description: "Optimiert & Skalierbar"
+
+# Resource limits for better performance
+resources:
+  limits:
+    cpu: 100m
+    memory: 64Mi
+  requests:
+    cpu: 50m
+    memory: 32Mi
+
+# NGINX performance configuration
+nginx:
+  config: |
+    server {
+        listen 80;
+        server_name _;
+        root /usr/share/nginx/html;
+        index index.html;
+        
+        # Gzip compression
+        gzip on;
+        gzip_vary on;
+        gzip_min_length 1000;
+        gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+        
+        # Browser caching
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+            expires 1M;
+            add_header Cache-Control "public, immutable";
+        }
+        
+        # Security headers
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        
+        # Keep alive
+        keepalive_timeout 30;
+        keepalive_requests 100;
+        
+        location / {
+            try_files $uri $uri/ =404;
+        }
+    }

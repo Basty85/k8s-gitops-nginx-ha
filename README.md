@@ -72,7 +72,7 @@ microk8s helm3 upgrade --install nginx-website \
 ## Links
 
 - **Website**: https://sebastianmeyer.org
-- **Load Balancer**: http://192.168.1.70
+- **Load Balancer**: http://192.168.1.70 (local only)
 - **Monitoring**: ./monitoring/cluster-overview.sh
 
 ## Prerequisites
