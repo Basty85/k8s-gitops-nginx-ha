@@ -35,6 +35,10 @@ microk8s helm3 upgrade --install nginx-website \
 # Deploy with default values
 microk8s helm3 upgrade --install nginx-website-dev \
   helm-charts/nginx-website/
+
+# Upgrade existing deployment after changes
+microk8s helm3 upgrade nginx-website-dev \
+  helm-charts/nginx-website/
 ```
 
 ## GitOps Workflow
