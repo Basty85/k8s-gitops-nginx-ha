@@ -33,3 +33,65 @@ microk8s kubectl get nodes -o wide
 
 # Watch-Modus (Live-Updates):
 watch -n2 'microk8s kubectl get pods -A -o wide'
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 🚀 HELM3 COMMANDS (GitOps Workflow)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Chart Management:
+microk8s helm3 list                                     # Alle installierten Releases
+microk8s helm3 list -A                                  # Releases in allen Namespaces
+microk8s helm3 status <release-name>                    # Status eines Release
+microk8s helm3 history <release-name>                   # Release-Historie
+
+# Chart Installation & Updates:
+microk8s helm3 install <release> <chart-path>           # Neues Release installieren
+microk8s helm3 upgrade <release> <chart-path>           # Release aktualisieren
+microk8s helm3 upgrade --install <release> <chart-path> # Install oder Update
+microk8s helm3 uninstall <release>                      # Release löschen
+
+# Mit Values-Dateien:
+microk8s helm3 install <release> <chart> -f values.yaml                    # Mit custom values
+microk8s helm3 upgrade <release> <chart> -f environments/production/values.yaml  # Production deployment
+microk8s helm3 install <release> <chart> --set key=value                   # Einzelne Values setzen
+
+# Chart Development & Testing:
+microk8s helm3 lint <chart-path>                        # Chart validieren
+microk8s helm3 template <release> <chart-path>          # Templates rendern (ohne Deploy)
+microk8s helm3 template <release> <chart> -f values.yaml --debug          # Debug-Mode
+microk8s helm3 install <release> <chart> --dry-run      # Simulation ohne Deployment
+
+# Rollback:
+microk8s helm3 rollback <release> <revision>            # Zu bestimmter Version zurück
+microk8s helm3 rollback <release> 0                     # Zur vorherigen Version
+
+# Values & Configuration:
+microk8s helm3 get values <release>                     # Aktuelle Values anzeigen
+microk8s helm3 get manifest <release>                   # Deployed YAML anzeigen
+microk8s helm3 get all <release>                        # Alles zu einem Release
+
+# Chart Repository (falls externe Charts):
+microk8s helm3 repo add <name> <url>                    # Repository hinzufügen
+microk8s helm3 repo update                              # Repositories aktualisieren
+microk8s helm3 search repo <chart-name>                 # Charts suchen
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 🎯 PROJECT-SPECIFIC COMMANDS (für dieses Repository)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Standard Deployment:
+microk8s helm3 upgrade --install nginx-website helm-charts/nginx-website/ -f environments/production/values.yaml
+
+# Development:
+microk8s helm3 install nginx-website-dev helm-charts/nginx-website/
+
+# Chart testen:
+microk8s helm3 lint helm-charts/nginx-website/
+
+# Status prüfen:
+microk8s helm3 status nginx-website
+./monitoring/cluster-overview.sh
+
+# Rollback bei Problemen:
+microk8s helm3 rollback nginx-website 1
