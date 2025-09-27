@@ -1,0 +1,56 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Kubernetes secrets (never commit!)
+**/secrets/
+*.key
+*.cer
+*.crt
+*.pem
+tls_cert/
+tls_cert/*.key
+tls_cert/*.crt
+tls_cert/*.cer
+
+# Helm
+*.tgz
+charts/*.tgz
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Local values (for testing)
+values-local.yaml
+*-local.yaml
+
+# Backup files
+*.bak
+*.backup
+
+# ArgoCD/GitOps (if using)
+.argocd/
+.flux/
+
+# Terraform (if used for infrastructure)
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl

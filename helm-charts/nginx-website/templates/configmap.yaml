@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "nginx-website-chart.fullname" . }}-website
+  labels:
+    {{- include "nginx-website-chart.labels" . | nindent 4 }}
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sebastian Meyer - Kubernetes HA Cluster</title>
+        <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚀%3C/text%3E%3C/svg%3E">
+        <style>
+            body { 
+                font-family: Arial, sans-serif; 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                text-align: center;
+                padding: 20px;
+                margin: 0;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .container { max-width: 800px; margin: 0 auto; }
+            h1 { font-size: 3em; margin-bottom: 20px; }
+            .info-box { 
+                background: rgba(0,0,0,0.3); 
+                padding: 20px; 
+                border-radius: 10px; 
+                margin: 20px 0;
+            }
+            .status-grid { 
+                display: grid; 
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+                gap: 15px; 
+                margin: 20px 0; 
+            }
+            .status-item { 
+                background: rgba(0,0,0,0.2); 
+                padding: 15px; 
+                border-radius: 8px; 
+                border-left: 4px solid #4CAF50;
+            }
+            .feature { color: #4CAF50; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🚀 Kubernetes HA Cluster</h1>
+            <p>High-Availability Kubernetes mit NGINX & TLS</p>
+            
+            <div class="info-box">
+                <h2>Willkommen auf Sebastian Meyers Kubernetes Cluster</h2>
+                <p>Diese statische Website wird über ein hochverfügbares Kubernetes-Cluster bereitgestellt.</p>
+            </div>
+            
+            <div class="status-grid">
+                <div class="status-item">
+                    <h3>🖥️ Cluster Setup</h3>
+                    <p class="feature">3-Node HA Cluster</p>
+                </div>
+                <div class="status-item">
+                    <h3>🌐 Load Balancing</h3>
+                    <p class="feature">NGINX Ingress</p>
+                </div>
+                <div class="status-item">
+                    <h3>🔐 SSL/TLS</h3>
+                    <p class="feature">Automatische HTTPS</p>
+                </div>
+                <div class="status-item">
+                    <h3>📦 Container</h3>
+                    <p class="feature">Docker & Kubernetes</p>
+                </div>
+                <div class="status-item">
+                    <h3>⚖️ High Availability</h3>
+                    <p class="feature">Redundante Services</p>
+                </div>
+                <div class="status-item">
+                    <h3>⚡ Performance</h3>
+                    <p class="feature">Optimiert & Skalierbar</p>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <p><strong>Technologien:</strong> Kubernetes, NGINX, Docker, TLS/SSL</p>
+                <p><strong>Infrastruktur:</strong> High-Availability Setup mit Load Balancing</p>
+            </div>
+        </div>
+    </body>
+    </html>

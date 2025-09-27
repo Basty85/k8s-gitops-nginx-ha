@@ -1,0 +1,16 @@
+apiVersion: v2
+name: nginx-website-chart
+description: A Helm chart for Sebastian Meyer's HA Kubernetes Website
+type: application
+version: 1.0.0
+appVersion: "1.28.0"
+home: https://sebastianmeyer.org
+maintainers:
+  - name: Sebastian Meyer
+    email: s3bastianmeyer@gmail.org
+keywords:
+  - nginx
+  - website
+  - static
+  - kubernetes
+  - high-availability

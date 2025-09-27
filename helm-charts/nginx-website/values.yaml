@@ -1,0 +1,70 @@
+# Default values for nginx-website-chart
+replicaCount: 6
+
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: "stable"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: LoadBalancer
+  port: 80
+  loadBalancerIP: "192.168.1.70"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: sebastianmeyer.org
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: www.sebastianmeyer.org
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: nginx-tls
+      hosts:
+        - sebastianmeyer.org
+        - www.sebastianmeyer.org
+
+website:
+  language: "de"
+  title: "Sebastian Meyer - Kubernetes HA Cluster"
+  favicon: "🚀"
+  fontFamily: "Arial"
+  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+  textColor: "white"
+  accentColor: "#4CAF50"
+  mainHeading: "🚀 Kubernetes HA Cluster"
+  subtitle: "High-Availability Kubernetes mit NGINX & TLS"
+  welcomeTitle: "Willkommen auf Sebastian Meyers Kubernetes Cluster"
+  welcomeText: "Diese statische Website wird über ein hochverfügbares Kubernetes-Cluster bereitgestellt."
+  techTitle: "Technologien"
+  technologies: "Kubernetes, NGINX, Docker, TLS/SSL"
+  infraTitle: "Infrastruktur"
+  infrastructure: "High-Availability Setup mit Load Balancing"
+  features:
+    - icon: "��️"
+      title: "Cluster Setup"
+      description: "3-Node HA Cluster"
+    - icon: "🌐"
+      title: "Load Balancing"
+      description: "NGINX Ingress"
+    - icon: "🔐"
+      title: "SSL/TLS"
+      description: "Automatische HTTPS"
+    - icon: "📦"
+      title: "Container"
+      description: "Docker & Kubernetes"
+    - icon: "⚖️"
+      title: "High Availability"
+      description: "Redundante Services"
+    - icon: "⚡"
+      title: "Performance"
+      description: "Optimiert & Skalierbar"

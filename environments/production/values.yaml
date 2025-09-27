@@ -1,0 +1,26 @@
+# Production Environment Values
+# These values override the defaults in helm-charts/nginx-website/values.yaml
+
+replicaCount: 6
+
+image:
+  tag: "stable"
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  loadBalancerIP: "192.168.1.70"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  tls:
+    - secretName: nginx-tls
+      hosts:
+        - sebastianmeyer.org
+        - www.sebastianmeyer.org
+
+website:
+  title: "Sebastian Meyer - Kubernetes HA Cluster"
+  mainHeading: "🚀 Kubernetes HA Cluster"
+  subtitle: "High-Availability Kubernetes mit NGINX & TLS"

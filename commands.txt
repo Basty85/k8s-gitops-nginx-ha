@@ -1,0 +1,35 @@
+microk8s status --wait-ready			        Prüft, ob Cluster läuft
+microk8s kubectl get nodes			            Zeigt Cluster-Nodes
+microk8s kubectl get all -A -o wide             Volle Übersicht mit allem was läuft
+microk8s kubectl get pods --all-namespaces	    Alle Pods im Cluster
+microk8s kubectl get pods -n <namespace>	    Pods in einem bestimmten Namespace
+microk8s kubectl get svc -n <namespace>		    Services in Namespace, zeigt ClusterIP / LoadBalancer / External IP
+microk8s kubectl get deployments -n <namespace>	Deployments und wie viele Pods sie verwalten
+microk8s kubectl describe pod <pod-name>	    Details zu Pod: Container, Events, Logs
+microk8s kubectl describe svc <service-name>	Details zu Service: Selector, Ports, Endpoints
+microk8s kubectl logs <pod-name>		        Logs eines Pods
+microk8s enable <addon>				            Addon aktivieren (Ingress, MetalLB, Cert-Manager, etc.)
+microk8s disable <addon>			            Addon deaktivieren
+microk8s kubectl apply -f <file>		        YAML Datei deployen
+microk8s kubectl delete -f <file>		        YAML Datei entfernen
+
+sudo microk8s dashboard-proxy                   Make dashboard accessible from browser https://127.0.0.1:10443
+
+
+Komplette Cluster-Übersicht:
+microk8s kubectl get all -A -o wide
+
+microk8s kubectl top nodes
+microk8s kubectl top pods -A --sort-by=cpu
+
+# Nur Ihre Apps:
+microk8s kubectl get pods,svc,ing -o wide
+
+# Nur LoadBalancer:
+microk8s kubectl get svc -A | grep LoadBalancer
+
+# Cluster-Health:
+microk8s kubectl get nodes -o wide
+
+# Watch-Modus (Live-Updates):
+watch -n2 'microk8s kubectl get pods -A -o wide'
