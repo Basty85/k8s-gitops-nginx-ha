@@ -17,8 +17,8 @@ NC='\033[0m' # No Color
 
 # Header
 echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗"
-echo -e "║                  🚀 KUBERNETES CLUSTER OVERVIEW             ║"
-echo -e "║                    Sebastian Meyer's HA Cluster             ║" 
+echo -e "║                  🚀 KUBERNETES CLUSTER OVERVIEW              ║"
+echo -e "║                    Sebastian Meyer's HA Cluster              ║" 
 echo -e "╚══════════════════════════════════════════════════════════════╝${NC}"
 echo
 
