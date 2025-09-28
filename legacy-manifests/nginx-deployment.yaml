@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx
+  namespace: default
 spec:
   replicas: 6
   selector:
@@ -21,6 +22,13 @@ spec:
         - name: website-content
           mountPath: /usr/share/nginx/html
           readOnly: true
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
       volumes:
       - name: website-content
         configMap:
