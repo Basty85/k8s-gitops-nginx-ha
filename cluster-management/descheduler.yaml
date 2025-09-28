@@ -10,6 +10,11 @@ data:
     strategies:
       "RemoveDuplicates":
         enabled: true
+        params:
+          # Optimiert für kleine Cluster
+          excludeOwnerKinds:
+          - "Job"
+          - "CronJob"
       "RemovePodsViolatingNodeAffinity":
         enabled: true
         params:
@@ -22,11 +27,14 @@ data:
         params:
           nodeResourceUtilizationThresholds:
             thresholds:
-              "cpu" : 20
-              "memory": 20
+              # Aggressivere Schwellen für kleine Cluster
+              "cpu" : 10
+              "memory": 10
+              "pods": 2
             targetThresholds:
-              "cpu" : 50
-              "memory": 50
+              "cpu" : 30
+              "memory": 30
+              "pods": 5
 ---
 apiVersion: batch/v1
 kind: CronJob
