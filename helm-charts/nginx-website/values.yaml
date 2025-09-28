@@ -50,7 +50,7 @@ website:
   infraTitle: "Infrastruktur"
   infrastructure: "High-Availability Setup mit Load Balancing"
   features:
-    - icon: "��️"
+    - icon: "🖥️"
       title: "Cluster Setup"
       description: "3-Node HA Cluster"
     - icon: "🌐"
