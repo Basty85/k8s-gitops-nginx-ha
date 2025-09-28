@@ -15,6 +15,14 @@ microk8s kubectl delete -f <file>		        YAML Datei entfernen
 
 sudo microk8s dashboard-proxy                   Make dashboard accessible from browser https://127.0.0.1:10443
 
+# HA Cluster Management:
+./automation/setup-ha-cluster.sh               Setup HA optimizations (failure domains, descheduler, anti-affinity)
+./automation/configure-failure-domain.sh       Configure failure domain for current node
+microk8s kubectl apply -f cluster-management/descheduler.yaml   Deploy pod rebalancing
+microk8s kubectl create job --from=cronjob/descheduler-cronjob -n kube-system descheduler-now   Trigger manual rebalancing
+
+# Pod Distribution Checks:
+microk8s kubectl get pods -o wide -l "app.kubernetes.io/instance=nginx-website"   Check pod distribution across nodes
 
 Komplette Cluster-Übersicht:
 microk8s kubectl get all -A -o wide

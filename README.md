@@ -6,15 +6,19 @@
 
 ```
 k8s-deployment/
-├── .gitignore                # Git ignore patterns
-├── README.md                 # This documentation
-├── helm-charts/              # Helm Charts (Source of Truth)
-│   └── nginx-website/        # Main application chart
-├── environments/             # Environment-specific configurations  
-│   └── production/           # Production values
-├── legacy-manifests/         # Deprecated YAML files (reference only)
-└── monitoring/               # Cluster monitoring tools
-    └── cluster-overview.sh   # Cluster health check script
+├── .gitignore                        # Git ignore patterns
+├── README.md                         # This documentation
+├── helm-charts/                      # Helm Charts (Source of Truth)
+│   └── nginx-website/                # Main application chart
+├── environments/                     # Environment-specific configurations  
+│   └── production/                   # Production values
+├── automation/                       # Automation scripts
+│   └── configure-failure-domain.sh   # HA failure domain setup
+├── cluster-management/               # Cluster optimization tools
+│   └── descheduler.yaml              # Pod rebalancing configuration
+├── legacy-manifests/                 # Deprecated YAML files (reference only)
+└── monitoring/                       # Cluster monitoring tools
+    └── cluster-overview.sh           # Cluster health check script
 ```
 
 ## Deployment Commands
@@ -90,6 +94,47 @@ microk8s helm3 upgrade --install nginx-website \
     --key=path/to/private.key
   ```
 - LoadBalancer IP range configured in MetalLB
+
+## High Availability & Pod Scheduling
+
+### Failure Domains Configuration
+Configure failure domains for optimal HA resilience:
+
+```bash
+# Run on each VM to set individual failure domains
+./automation/configure-failure-domain.sh
+```
+
+This automatically detects the node and sets appropriate failure domains:
+- VM1 (192.168.1.54): failure-domain=1
+- VM2 (192.168.1.55): failure-domain=2  
+- VM3 (192.168.1.56): failure-domain=3
+
+### Pod Rebalancing & Anti-Affinity
+
+The deployment includes **Pod Anti-Affinity** rules to distribute pods evenly across nodes.
+
+Deploy the **Descheduler** for automatic pod rebalancing:
+```bash
+# Deploy descheduler (runs every 10 minutes)
+microk8s kubectl apply -f cluster-management/descheduler.yaml
+
+# Manual rebalancing trigger
+microk8s kubectl create job --from=cronjob/descheduler-cronjob -n kube-system descheduler-now
+```
+
+**Benefits:**
+- ✅ **Even Distribution**: Pods spread across all available nodes
+- ✅ **Auto-Recovery**: When nodes return, pods rebalance automatically  
+- ✅ **Fault Tolerance**: No single node has all replicas
+
+### Pod Distribution Check
+```bash
+# Check current pod distribution
+microk8s kubectl get pods -o wide -l "app.kubernetes.io/instance=nginx-website"
+
+# Expected result: ~2 pods per node in 3-node cluster
+```
 
 ## Troubleshooting
 

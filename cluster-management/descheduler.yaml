@@ -1,0 +1,124 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: descheduler-policy
+  namespace: kube-system
+data:
+  policy.yaml: |
+    apiVersion: "descheduler/v1alpha1"
+    kind: "DeschedulerPolicy"
+    strategies:
+      "RemoveDuplicates":
+        enabled: true
+      "RemovePodsViolatingNodeAffinity":
+        enabled: true
+        params:
+          nodeAffinityType:
+          - "requiredDuringSchedulingIgnoredDuringExecution"
+      "RemovePodsViolatingInterPodAntiAffinity":
+        enabled: true
+      "LowNodeUtilization":
+        enabled: true
+        params:
+          nodeResourceUtilizationThresholds:
+            thresholds:
+              "cpu" : 20
+              "memory": 20
+            targetThresholds:
+              "cpu" : 50
+              "memory": 50
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: descheduler-cronjob
+  namespace: kube-system
+spec:
+  schedule: "*/10 * * * *"  # Every 10 minutes
+  concurrencyPolicy: "Forbid"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: descheduler-pod
+        spec:
+          priorityClassName: system-cluster-critical
+          serviceAccount: descheduler-sa
+          restartPolicy: "Never"
+          containers:
+          - name: descheduler
+            image: k8s.gcr.io/descheduler/descheduler:v0.27.1
+            volumeMounts:
+            - mountPath: /policy-dir
+              name: policy-volume
+            command:
+            - "/bin/descheduler"
+            args:
+            - "--policy-config-file"
+            - "/policy-dir/policy.yaml"
+            - "--v"
+            - "3"
+            resources:
+              requests:
+                cpu: "500m"
+                memory: "256Mi"
+            livenessProbe:
+              failureThreshold: 3
+              httpGet:
+                path: /healthz
+                port: 10258
+                scheme: HTTPS
+              initialDelaySeconds: 3
+              periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              privileged: false
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+          volumes:
+          - name: policy-volume
+            configMap:
+              name: descheduler-policy
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: descheduler-sa
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: descheduler-cluster-role
+rules:
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create"]
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "watch", "list", "delete"]
+- apiGroups: [""]
+  resources: ["pods/eviction"]
+  verbs: ["create"]
+- apiGroups: ["scheduling.k8s.io"]
+  resources: ["priorityclasses"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: descheduler-cluster-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: descheduler-cluster-role
+subjects:
+- name: descheduler-sa
+  kind: ServiceAccount
+  namespace: kube-system
