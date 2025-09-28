@@ -12,10 +12,15 @@ k8s-deployment/
 │   └── nginx-website/                # Main application chart
 ├── environments/                     # Environment-specific configurations  
 │   └── production/                   # Production values
+├── argocd/                           # GitOps configurations
+│   ├── applications.yaml             # ArgoCD Applications
+│   └── project.yaml                  # ArgoCD Project
 ├── automation/                       # Automation scripts
+│   ├── setup-ha-cluster.sh           # Complete HA setup
 │   └── configure-failure-domain.sh   # HA failure domain setup
 ├── cluster-management/               # Cluster optimization tools
-│   └── descheduler.yaml              # Pod rebalancing configuration
+│   ├── descheduler.yaml              # Pod rebalancing configuration
+│   └── argocd-ingress.yaml           # ArgoCD external access
 ├── legacy-manifests/                 # Deprecated YAML files (reference only)
 └── monitoring/                       # Cluster monitoring tools
     └── cluster-overview.sh           # Cluster health check script
@@ -47,15 +52,30 @@ microk8s helm3 upgrade nginx-website-dev \
 
 ## GitOps Workflow
 
+**🔄 ArgoCD automatically manages deployments from this Git repository**
+
+### ArgoCD Access:
+- **UI**: http://192.168.1.72 or https://argocd.sebastianmeyer.org
+- **Username**: `admin`
+- **Password**: Retrieved with: `microk8s kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d`
+
+### GitOps Process:
 1. **Make changes** in `helm-charts/nginx-website/`
 2. **Update environment values** in `environments/production/values.yaml`
-3. **Test locally**: `microk8s helm3 template` or `microk8s helm3 --dry-run`
+3. **Test locally**: `microk8s helm3 template nginx-website helm-charts/nginx-website/ -f environments/production/values.yaml`
 4. **Commit & Push** to trigger GitOps pipeline
-5. **ArgoCD/Flux** automatically syncs changes
+5. **ArgoCD automatically syncs** changes within 3 minutes
+
+### Manual Sync (if needed):
+```bash
+# Trigger immediate sync
+microk8s kubectl patch application nginx-website-production -n argocd --type merge -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"now"}}}'
+```
 
 ## Architecture
 
 - **3-Node HA Cluster**: ubuntu-ha-cluster-1/2/3
+- **GitOps**: ArgoCD (192.168.1.72)
 - **Load Balancer**: MetalLB (192.168.1.70)
 - **Ingress**: NGINX Ingress Controller
 - **TLS**: Sectigo SSL Certificate

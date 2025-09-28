@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: sebastian-ha-cluster
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Sebastian Meyer's HA Kubernetes Cluster Project
+  sourceRepos:
+  - https://github.com/Basty85/k8s-gitops-nginx-ha.git
+  destinations:
+  - namespace: '*'
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: 'rbac.authorization.k8s.io'
+    kind: ClusterRole
+  - group: 'rbac.authorization.k8s.io' 
+    kind: ClusterRoleBinding
+  - group: 'apiextensions.k8s.io'
+    kind: CustomResourceDefinition
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  roles:
+  - name: admin
+    description: Admin access to project
+    policies:
+    - p, proj:sebastian-ha-cluster:admin, applications, *, sebastian-ha-cluster/*, allow
+    - p, proj:sebastian-ha-cluster:admin, repositories, *, *, allow
+    - p, proj:sebastian-ha-cluster:admin, clusters, *, *, allow
+    groups:
+    - sebastian-ha-cluster:admin

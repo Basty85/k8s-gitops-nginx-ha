@@ -21,6 +21,12 @@ sudo microk8s dashboard-proxy                   Make dashboard accessible from b
 microk8s kubectl apply -f cluster-management/descheduler.yaml   Deploy pod rebalancing
 microk8s kubectl create job --from=cronjob/descheduler-cronjob -n kube-system descheduler-now   Trigger manual rebalancing
 
+# GitOps with ArgoCD:
+microk8s kubectl apply -f argocd/applications.yaml                Deploy ArgoCD applications
+microk8s kubectl get applications -n argocd                       Check ArgoCD application status  
+microk8s kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d   Get admin password
+microk8s kubectl patch application nginx-website-production -n argocd --type merge -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"now"}}}'   Force sync
+
 # Pod Distribution Checks:
 microk8s kubectl get pods -o wide -l "app.kubernetes.io/instance=nginx-website"   Check pod distribution across nodes
 
