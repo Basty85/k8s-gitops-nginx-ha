@@ -55,7 +55,7 @@ microk8s helm3 upgrade nginx-website-dev \
 **🔄 ArgoCD automatically manages deployments from this Git repository**
 
 ### ArgoCD Access:
-- **UI**: http://192.168.1.72 or https://argocd.sebastianmeyer.org
+- **UI**: https://192.168.1.73 or https://argocd.sebastianmeyer.org
 - **Username**: `admin`
 - **Password**: Retrieved with: `microk8s kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d`
 
@@ -75,7 +75,7 @@ microk8s kubectl patch application nginx-website-production -n argocd --type mer
 ## Architecture
 
 - **3-Node HA Cluster**: ubuntu-ha-cluster-1/2/3
-- **GitOps**: ArgoCD (192.168.1.72)
+- **GitOps**: ArgoCD (https://192.168.1.73)
 - **Load Balancer**: MetalLB (192.168.1.70)
 - **Ingress**: NGINX Ingress Controller
 - **TLS**: Sectigo SSL Certificate
