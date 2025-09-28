@@ -32,12 +32,12 @@ echo
 echo -e "${BLUE}🚀 NGINX DEPLOYMENT OVERVIEW${NC}"
 echo -e "${BLUE}=============================${NC}"
 echo -e "${GREEN}Deployment Status:${NC}"
-microk8s kubectl get deployment -l "app.kubernetes.io/instance=nginx-website"
+microk8s kubectl get deployment -l "app.kubernetes.io/name=nginx-website-chart"
 echo
 echo -e "${GREEN}NGINX Pod Distribution per Node:${NC}"
 for node in $(microk8s kubectl get nodes --no-headers | awk '{print $1}'); do
     node_status=$(microk8s kubectl get node $node --no-headers | awk '{print $2}')
-    pod_count=$(microk8s kubectl get pods -l "app.kubernetes.io/instance=nginx-website" -o wide --no-headers | grep $node | wc -l)
+    pod_count=$(microk8s kubectl get pods -l "app.kubernetes.io/name=nginx-website-chart" -o wide --no-headers | grep $node | wc -l)
     
     if [ "$node_status" = "Ready" ]; then
         if [ $pod_count -gt 0 ]; then
@@ -157,7 +157,7 @@ echo -e "${GREEN}✅ CLUSTER HEALTH SUMMARY${NC}"
 echo -e "${GREEN}===========================${NC}"
 total_nodes=$(microk8s kubectl get nodes --no-headers | wc -l)
 ready_nodes=$(microk8s kubectl get nodes --no-headers | grep " Ready " | wc -l)
-total_nginx_pods=$(microk8s kubectl get pods -l "app.kubernetes.io/instance=nginx-website" --no-headers | grep "Running" | wc -l)
+total_nginx_pods=$(microk8s kubectl get pods -l "app.kubernetes.io/name=nginx-website-chart" --no-headers | grep "Running" | wc -l)
 target_nginx_pods=6
 
 # HA Component Counts - Dynamic based on DaemonSet configuration
@@ -171,14 +171,14 @@ echo -e "🖥️  Nodes: ${GREEN}$ready_nodes/$total_nodes Ready${NC}"
 echo -e "🚀 NGINX Pods: ${GREEN}$total_nginx_pods/$target_nginx_pods Running${NC} (Soll: 2 pro Node)"
 echo -e "🔗 Ingress Controllers: ${GREEN}$running_ingress/$desired_ingress Running${NC} (DaemonSet: 1 pro Node)"
 echo -e "⚖️  MetalLB Components: ${GREEN}$running_metallb/$desired_metallb Running${NC} ($desired_metallb_speakers Speakers + 1 Controller)"
-echo -e "🌐 LoadBalancer Service: $(microk8s kubectl get svc -l "app.kubernetes.io/instance=nginx-website" --no-headers | awk '{print $4}' | grep -v '<none>' | wc -l)/1 Active"
+echo -e "🌐 LoadBalancer Service: $(microk8s kubectl get svc -l "app.kubernetes.io/name=nginx-website-chart" --no-headers | awk '{print $4}' | grep -v '<none>' | wc -l)/1 Active"
 echo -e "📋 Ingress Rules: $(microk8s kubectl get ingress --no-headers | wc -l)/1 Configured"
 
 # Website Test
 echo
 echo -e "${CYAN}🌍 WEBSITE CONNECTIVITY TEST${NC}"
 echo -e "${CYAN}==============================${NC}"
-LB_IP=$(microk8s kubectl get svc -l "app.kubernetes.io/instance=nginx-website" -o jsonpath='{.items[0].status.loadBalancer.ingress[0].ip}')
+LB_IP=$(microk8s kubectl get svc -l "app.kubernetes.io/name=nginx-website-chart" -o jsonpath='{.items[0].status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "")
 if [ -n "$LB_IP" ] && [ "$LB_IP" != "null" ]; then
     # Test multiple times for reliability
     success=false
@@ -201,7 +201,7 @@ if [ -n "$LB_IP" ] && [ "$LB_IP" != "null" ]; then
         echo -e "${YELLOW}⚠️  Website zeitweise nicht erreichbar unter: http://$LB_IP${NC}"
         echo -e "${YELLOW}   � LoadBalancer Service läuft, aber Verbindungsprobleme aufgetreten${NC}"
         # Show service status
-        svc_status=$(microk8s kubectl get svc -l "app.kubernetes.io/instance=nginx-website" --no-headers | awk '{print $4}')
+        svc_status=$(microk8s kubectl get svc -l "app.kubernetes.io/name=nginx-website-chart" --no-headers | awk '{print $4}')
         echo -e "${CYAN}   🔍 LoadBalancer External-IP: $svc_status${NC}"
     fi
 else
