@@ -56,9 +56,9 @@ data:
             
             <div class="info-box">
                 <h2>Willkommen auf Sebastian Meyers Kubernetes Cluster</h2>
-                <p>Diese Website wird über ein hochverfügbares Kubernetes-Cluster bereitgestellt und per <a href="https://github.com/Basty85/k8s-gitops-nginx-ha" target="_blank">GitOps</a> verwaltet.</p>
+                <p>Diese Website wird über ein hochverfügbares Kubernetes-Cluster bereitgestellt und per <a href="https://github.com/Basty85/k8s-gitops-nginx-ha" style="color: #4CAF50;" target="_blank">GitOps</a> verwaltet.</p>
             </div>
-            
+    
             <div class="status-grid">
                 <div class="status-item">
                     <h3>🖥️ Cluster Setup</h3>
