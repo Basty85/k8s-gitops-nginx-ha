@@ -1,7 +1,7 @@
 # Production Environment Values
 # These values override the defaults in helm-charts/nginx-website/values.yaml
 
-replicaCount: 3
+replicaCount: 6
 
 image:
   tag: "stable"
