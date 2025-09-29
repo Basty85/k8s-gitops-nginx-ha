@@ -7,7 +7,7 @@ appVersion: "1.28.0"
 home: https://sebastianmeyer.org
 maintainers:
   - name: Sebastian Meyer
-    email: s3bastianmeyer@gmail.org
+    email: s3bastian.meyer@gmail.org
 keywords:
   - nginx
   - website
