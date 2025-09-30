@@ -171,19 +171,21 @@ echo -e "🖥️  Nodes: ${GREEN}$ready_nodes/$total_nodes Ready${NC}"
 echo -e "🚀 NGINX Pods: ${GREEN}$total_nginx_pods/$target_nginx_pods Running${NC} (Soll: 2 pro Node)"
 echo -e "🔗 Ingress Controllers: ${GREEN}$running_ingress/$desired_ingress Running${NC} (DaemonSet: 1 pro Node)"
 echo -e "⚖️  MetalLB Components: ${GREEN}$running_metallb/$desired_metallb Running${NC} ($desired_metallb_speakers Speakers + 1 Controller)"
-echo -e "🌐 LoadBalancer Service: $(microk8s kubectl get svc -l "app.kubernetes.io/name=nginx-website-chart" --no-headers | awk '{print $4}' | grep -v '<none>' | wc -l)/1 Active"
-echo -e "📋 Ingress Rules: $(microk8s kubectl get ingress --no-headers | wc -l)/1 Configured"
+echo -e "🌐 Ingress LoadBalancer: $(microk8s kubectl get svc ingress-loadbalancer -n ingress --no-headers 2>/dev/null | awk '{print $4}' | grep -v '<none>' | wc -l)/1 Active"
+echo -e "📋 Ingress Rules: $(microk8s kubectl get ingress --no-headers | wc -l)/2 Configured"
 
 # Website Test
 echo
 echo -e "${CYAN}🌍 WEBSITE CONNECTIVITY TEST${NC}"
 echo -e "${CYAN}==============================${NC}"
-LB_IP=$(microk8s kubectl get svc -l "app.kubernetes.io/name=nginx-website-chart" -o jsonpath='{.items[0].status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "")
+LB_IP=$(microk8s kubectl get svc ingress-loadbalancer -n ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "")
 if [ -n "$LB_IP" ] && [ "$LB_IP" != "null" ]; then
-    # Test multiple times for reliability
+    # Test LoadBalancer connectivity (direct IP access will show 404 - this is expected)
     success=false
+    response_code=""
     for attempt in 1 2 3; do
-        if curl -s --connect-timeout 3 --max-time 5 http://$LB_IP >/dev/null 2>&1; then
+        response_code=$(curl -s --connect-timeout 3 --max-time 5 -o /dev/null -w "%{http_code}" http://$LB_IP 2>/dev/null || echo "000")
+        if [ "$response_code" != "000" ] && [ "$response_code" != "" ]; then
             success=true
             break
         fi
@@ -191,22 +193,51 @@ if [ -n "$LB_IP" ] && [ "$LB_IP" != "null" ]; then
     done
     
     if [ "$success" = true ]; then
-        echo -e "${GREEN}✅ Website erreichbar unter: http://$LB_IP${NC}"
-        # Get page title for verification
-        title=$(curl -s --connect-timeout 2 --max-time 3 http://$LB_IP 2>/dev/null | grep -o '<title>[^<]*</title>' 2>/dev/null | sed 's/<[^>]*>//g')
-        if [ -n "$title" ]; then
-            echo -e "${GREEN}   📄 ${title}${NC}"
+        if [ "$response_code" = "404" ]; then
+            echo -e "${GREEN}✅ Ingress LoadBalancer erreichbar: http://$LB_IP${NC}"
+            echo -e "${CYAN}   📄 HTTP $response_code (erwartet bei direktem IP-Zugriff)${NC}"
+            echo -e "${CYAN}   💡 Website nur über Domain erreichbar: sebastianmeyer.org${NC}"
+        elif [ "$response_code" = "200" ]; then
+            echo -e "${GREEN}✅ Website erreichbar unter: http://$LB_IP${NC}"
+            echo -e "${GREEN}   📄 HTTP $response_code${NC}"
+        else
+            echo -e "${YELLOW}⚠️  Unerwartete Antwort: HTTP $response_code von http://$LB_IP${NC}"
+        fi
+        
+        # Test with correct hostname if DNS resolves
+        if nslookup sebastianmeyer.org >/dev/null 2>&1; then
+            domain_test=$(curl -s --connect-timeout 3 --max-time 5 -o /dev/null -w "%{http_code}" -H "Host: sebastianmeyer.org" http://$LB_IP 2>/dev/null || echo "000")
+            if [ "$domain_test" = "200" ]; then
+                echo -e "${GREEN}   🌐 Domain-Test erfolgreich: sebastianmeyer.org → HTTP $domain_test${NC}"
+            elif [ "$domain_test" != "000" ]; then
+                echo -e "${YELLOW}   🌐 Domain-Test: sebastianmeyer.org → HTTP $domain_test${NC}"
+            fi
         fi
     else
-        echo -e "${YELLOW}⚠️  Website zeitweise nicht erreichbar unter: http://$LB_IP${NC}"
-        echo -e "${YELLOW}   � LoadBalancer Service läuft, aber Verbindungsprobleme aufgetreten${NC}"
+        echo -e "${RED}❌ Ingress LoadBalancer nicht erreichbar: http://$LB_IP${NC}"
+        echo -e "${YELLOW}   🔍 Verbindungsprobleme zur LoadBalancer IP${NC}"
         # Show service status
-        svc_status=$(microk8s kubectl get svc -l "app.kubernetes.io/name=nginx-website-chart" --no-headers | awk '{print $4}')
-        echo -e "${CYAN}   🔍 LoadBalancer External-IP: $svc_status${NC}"
+        svc_status=$(microk8s kubectl get svc ingress-loadbalancer -n ingress --no-headers | awk '{print $4}')
+        echo -e "${CYAN}   🔍 Ingress LoadBalancer External-IP: $svc_status${NC}"
     fi
 else
-    echo -e "${YELLOW}⚠️  LoadBalancer IP nicht verfügbar${NC}"
+    echo -e "${RED}❌ Ingress LoadBalancer IP nicht verfügbar${NC}"
 fi
+
+echo
+echo -e "${CYAN}📋 TRAFFIC FLOW ARCHITEKTUR${NC}"
+echo -e "${CYAN}============================${NC}"
+echo -e "${GREEN}🌐 Korrekter Domain-basierter Traffic Flow:${NC}"
+echo -e "${CYAN}   sebastianmeyer.org (DNS)${NC}"
+echo -e "${CYAN}       ↓ Resolve to 192.168.1.71${NC}"
+echo -e "${CYAN}   Ingress LoadBalancer (192.168.1.71)${NC}"
+echo -e "${CYAN}       ↓ Host-Header: sebastianmeyer.org${NC}"
+echo -e "${CYAN}   NGINX Ingress Controller${NC}"
+echo -e "${CYAN}       ↓ Route based on hostname${NC}"
+echo -e "${CYAN}   nginx-website Pod (ClusterIP)${NC}"
+echo
+echo -e "${GREEN}✅ Domain-Zugriff (sebastianmeyer.org):${NC}"
+echo -e "${GREEN}   ✅ Host-Header vorhanden → Ingress-Regel → HTTP 308/200${NC}"
 
 echo
 echo -e "${CYAN}Script ausgeführt: $(date)${NC}"
