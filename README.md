@@ -56,7 +56,7 @@ microk8s helm3 upgrade nginx-website-dev \
 **🔄 ArgoCD automatically manages deployments from this Git repository**
 
 ### ArgoCD Access:
-- **UI**: https://192.168.1.73
+- **UI**: https://192.168.1.72
 - **Username**: `admin`
 
 ### GitOps Process:
@@ -84,7 +84,7 @@ microk8s kubectl get svc ingress-loadbalancer -n ingress
 ## Architecture
 
 - **3-Node HA Cluster**: ubuntu-ha-cluster-1/2/3
-- **GitOps**: ArgoCD (https://192.168.1.73)
+- **GitOps**: ArgoCD (https://192.168.1.72)
 - **Ingress LoadBalancer**: MetalLB (192.168.1.71) - **Simplified Architecture**
 - **Application Services**: ClusterIP (routed via Ingress)
 - **Ingress Controller**: NGINX with SSL termination
