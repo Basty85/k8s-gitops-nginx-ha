@@ -6,7 +6,6 @@ metadata:
     {{- include "nginx-website-chart.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
-  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
   selector:
     {{- include "nginx-website-chart.selectorLabels" . | nindent 4 }}
   ports:
