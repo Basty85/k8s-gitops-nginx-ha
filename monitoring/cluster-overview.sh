@@ -237,7 +237,7 @@ echo -e "${CYAN}       ↓ Route based on hostname${NC}"
 echo -e "${CYAN}   nginx-website Pod (ClusterIP)${NC}"
 echo
 echo -e "${GREEN}✅ Domain-Zugriff (sebastianmeyer.org):${NC}"
-echo -e "${GREEN}   ✅ Host-Header vorhanden → Ingress-Regel → HTTP 308/200${NC}"
+echo -e "${GREEN}   ✅ Host-Header vorhanden${NC}"
 
 echo
 echo -e "${CYAN}Script ausgeführt: $(date)${NC}"
