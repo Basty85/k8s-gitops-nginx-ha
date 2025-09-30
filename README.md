@@ -20,7 +20,8 @@ k8s-deployment/
 │   └── configure-failure-domain.sh   # HA failure domain setup
 ├── cluster-management/               # Cluster optimization tools
 │   ├── descheduler.yaml              # Pod rebalancing configuration
-│   └── argocd-ingress.yaml           # ArgoCD external access
+│   ├── argocd-ingress.yaml           # ArgoCD external access
+│   └── ingress-loadbalancer.yaml     # Ingress LoadBalancer service
 ├── legacy-manifests/                 # Deprecated YAML files (reference only)
 └── monitoring/                       # Cluster monitoring tools
     └── cluster-overview.sh           # Cluster health check script
@@ -71,14 +72,59 @@ microk8s helm3 upgrade nginx-website-dev \
 microk8s kubectl patch application nginx-website-production -n argocd --type merge -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"now"}}}'
 ```
 
+### Infrastructure Components:
+```bash
+# Deploy ingress LoadBalancer (if not auto-managed by ArgoCD)
+microk8s kubectl apply -f cluster-management/ingress-loadbalancer.yaml
+
+# Verify ingress LoadBalancer status
+microk8s kubectl get svc ingress-loadbalancer -n ingress
+```
+
 ## Architecture
 
 - **3-Node HA Cluster**: ubuntu-ha-cluster-1/2/3
 - **GitOps**: ArgoCD (https://192.168.1.73)
-- **Load Balancer**: MetalLB (192.168.1.70)
-- **Ingress**: NGINX Ingress Controller
+- **Ingress LoadBalancer**: MetalLB (192.168.1.71) - **Simplified Architecture**
+- **Application Services**: ClusterIP (routed via Ingress)
+- **Ingress Controller**: NGINX with SSL termination
 - **TLS**: Sectigo SSL Certificate
-- **Monitoring**: Custom cluster-overview script
+- **Monitoring**: Enhanced cluster-overview script with traffic flow visualization
+
+## Helm Chart Architecture Changes
+
+### ⚠️ Important: Service Type Migration
+**The Helm chart has been updated to use a simplified LoadBalancer architecture:**
+
+**Before (per-app LoadBalancer):**
+- Each application had its own LoadBalancer service
+- Multiple MetalLB IP addresses required
+- Complex IP management
+
+**After (centralized Ingress LoadBalancer):**
+- Single Ingress LoadBalancer service (`192.168.1.71`)
+- All applications use ClusterIP services  
+- Traffic routing via Ingress Controller with host-based rules
+- SSL termination at Ingress level
+
+### Service Configuration:
+```yaml
+# helm-charts/nginx-website/values.yaml (updated)
+service:
+  type: ClusterIP  # Changed from LoadBalancer
+  port: 80
+
+# environments/production/values.yaml (updated)  
+service:
+  type: ClusterIP  # No more loadBalancerIP configuration
+  port: 80
+```
+
+### Migration Benefits:
+- ✅ **Simplified IP Management**: Single entry point (192.168.1.71)
+- ✅ **Proper SSL Termination**: Handled by Ingress Controller
+- ✅ **Better Resource Usage**: No per-app LoadBalancer overhead
+- ✅ **Standard Architecture**: Follows Kubernetes best practices
 
 ## Quick Start
 
@@ -99,8 +145,25 @@ microk8s helm3 upgrade --install nginx-website \
 ## Links
 
 - **Website**: https://sebastianmeyer.org
-- **Load Balancer**: http://192.168.1.70 (local only)
+- **Ingress LoadBalancer**: http://192.168.1.71 (local only - shows 404 for direct IP access)
 - **Monitoring**: ./monitoring/cluster-overview.sh
+
+## Traffic Flow Architecture
+
+**Domain-based Traffic (Correct):**
+```
+sebastianmeyer.org (DNS) 
+    ↓ Resolve to 192.168.1.71
+Ingress LoadBalancer (192.168.1.71)
+    ↓ Host-Header: sebastianmeyer.org  
+NGINX Ingress Controller
+    ↓ Route based on hostname
+nginx-website Pod (ClusterIP)
+```
+
+**Direct IP Access:**
+- ❌ `http://192.168.1.71` → HTTP 404 (expected - no host header)
+- ✅ `sebastianmeyer.org` → HTTP 308/200 (correct domain routing)
 
 ## Prerequisites
 
@@ -112,7 +175,11 @@ microk8s helm3 upgrade --install nginx-website \
     --cert=path/to/certificate.crt \
     --key=path/to/private.key
   ```
-- LoadBalancer IP range configured in MetalLB
+- MetalLB configured with IP range including `192.168.1.71` for ingress LoadBalancer
+- Ingress LoadBalancer service deployed:
+  ```bash
+  microk8s kubectl apply -f cluster-management/ingress-loadbalancer.yaml
+  ```
 
 ## High Availability & Pod Scheduling
 
@@ -168,7 +235,10 @@ microk8s helm3 lint helm-charts/nginx-website/
 # Debug template rendering
 microk8s helm3 template nginx-website helm-charts/nginx-website/ -f environments/production/values.yaml
 
-# Check cluster health
+# Check ingress LoadBalancer status
+microk8s kubectl get svc ingress-loadbalancer -n ingress
+
+# Check cluster health (includes traffic flow visualization)
 ./monitoring/cluster-overview.sh
 ```
 
